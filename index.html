@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mapas - Mi Pizarrón</title>
+<link rel="icon" href="https://static.vecteezy.com/system/resources/thumbnails/037/250/706/small/mind-mapping-icon-vector.jpg">
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#0A2540">
+<style>
+*{box-sizing:border-box} body{margin:0;font-family:Arial;background:#fff6f0;overflow:hidden;color:#5a3a4a}
+#topBar{position:fixed;top:0;left:0;right:0;z-index:100;background:#fff6f0;border-bottom:3px solid #ffc7dd;padding:8px 10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;box-shadow:0 4px 16px rgba(0,0,0,.08)}
+#topBar h1{margin:0;font-size:18px;color:#0A2540;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+button.btn{border:none;border-radius:12px;padding:9px 12px;font-weight:bold;cursor:pointer;background:#0A2540;color:white;font-size:13px}
+button.btn.light{background:#dbeaff;color:#0A2540}
+button.btn.white{background:white;border:2px solid #0A2540;color:#0A2540}
+#menuBtn{width:44px;height:44px;border-radius:50%;background:#0A2540;color:white;border:none;font-size:20px;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.2)}
+#menuDrop{position:fixed;top:60px;left:10px;z-index:101;background:white;border-radius:18px;padding:12px;width:300px;box-shadow:0 10px 30px rgba(0,0,0,.18);border:3px solid #0A2540;display:none;max-height:80vh;overflow-y:auto}
+#menuDrop h3{margin:0 0 8px;color:#0A2540}
+input,select,textarea{width:100%;padding:10px;border-radius:12px;border:2px solid #a8e0ff;margin:6px 0;font-size:14px}
+#viewport{position:fixed;inset:0;top:60px;overflow:hidden;background:#fff6f0;background-image:radial-gradient(#a8e0ff 1.5px,transparent 1.5px);background-size:22px 22px;touch-action:none;cursor:grab}
+#viewport.grabbing{cursor:grabbing}
+#canvas{position:absolute;transform-origin:0 0;will-change:transform}
+.nodo{position:absolute;min-width:160px;max-width:300px;background:white;border:3px solid #0A2540;border-radius:16px;padding:10px;box-shadow:0 6px 16px rgba(0,0,0,.12);cursor:move;user-select:none}
+.nodo.sel{border:3px solid #0A2540;box-shadow:0 0 0 4px #dbeaff}
+.nodo .head{display:flex;gap:6px;align-items:center}
+.nodo .head b{flex:1;font-size:13px}
+.nodo .head button{border:none;background:#dbeaff;border-radius:50%;width:24px;height:24px;cursor:pointer;font-weight:bold}
+.nodo textarea{border:none;outline:none;resize:none;background:transparent;font-size:14px;padding:4px 0;min-height:50px;width:100%}
+.nodo img{width:100%;border-radius:10px;display:block;margin-top:6px}
+.nodo .colorRow{display:flex;gap:4px;margin-top:6px}
+.nodo .colorRow span{width:22px;height:22px;border-radius:50%;cursor:pointer;border:2px solid white;box-shadow:0 0 0 1px #ddd}
+svg#conex{position:absolute;inset:0;overflow:visible;pointer-events:none}
+.line{stroke:#0A2540;stroke-width:3;fill:none}
+.line.sel{stroke:#0A2540;stroke-width:4}
+#toolbar{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:100;background:white;border:3px solid #0A2540;border-radius:20px;padding:8px;display:flex;gap:6px;box-shadow:0 8px 20px rgba(0,0,0,.15);flex-wrap:wrap;justify-content:center;max-width:96vw}
+#toolbar button{border:none;border-radius:14px;padding:10px 12px;font-weight:bold;cursor:pointer;background:#dbeaff;font-size:13px}
+#toolbar button.primary{background:#0A2540;color:white}
+#minBar{position:fixed;bottom:80px;left:10px;z-index:100;display:flex;gap:8px;flex-wrap:wrap;max-width:90vw}
+.miniChip{background:#fff0a8;border:2px solid #e8b800;border-radius:14px;padding:8px 10px;font-size:12px;font-weight:bold;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.15)}
+#hint{position:fixed;bottom:80px;right:10px;z-index:99;background:#fff6f0;border:2px solid #0A2540;padding:10px 12px;border-radius:12px;font-size:12px;max-width:260px;line-height:1.5}
+#zoomLabel{position:fixed;top:68px;right:10px;z-index:99;background:white;border:2px solid #0A2540;padding:6px 10px;border-radius:20px;font-size:12px;font-weight:bold}
+#offlineTag{position:fixed;top:68px;left:50%;transform:translateX(-50%);z-index:99;background:#b8f1cc;padding:6px 12px;border-radius:20px;font-size:12px;font-weight:bold;display:none}
+kbd{background:#eee;border:1px solid #ccc;border-bottom-width:2px;border-radius:6px;padding:1px 5px;font-size:11px}
+</style>
+</head>
+<body>
+<div id="topBar">
+<button id="menuBtn" onclick="toggleMenu()">☰</button>
+<h1 id="tituloMapa">🗺️ Mi Pizarrón - Sin título</h1>
+<button class="btn light" onclick="centrar()">🎯 Centrar</button>
+<button class="btn" onclick="guardar()">💾 Guardar</button>
+<button class="btn white" onclick="minimizarMapaActual()">— Minimizar</button>
+<button class="btn white" onclick="descargarMapaComoArchivo()">⬇️ Descargar mapa</button>
+</div>
+<div id="offlineTag">● OFFLINE - anda sin wifi 💙</div>
+<div id="menuDrop">
+<h3>🌸 Menú</h3>
+<b>🗺️ Mis Mapas</b>
+<select id="mapaSel" onchange="cambiarMapa()"></select>
+<input id="nuevoMapaNombre" placeholder="Nombre del mapa: ej. Montaje - Unidad 1...">
+<button class="btn" onclick="crearMapa()">+ Crear mapa nuevo</button>
+<button class="btn light" onclick="duplicarMapa()">📄 Duplicar este mapa</button>
+<button class="btn light" onclick="borrarMapa()">🗑️ Borrar este mapa</button>
+<hr>
+<b>🎨 Fondo</b>
+<div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn small light" onclick="cambiarFondo('#fff6f0')">Blanco</button><button class="btn small light" onclick="cambiarFondo('#fff0a8')">Amarillo</button><button class="btn small light" onclick="cambiarFondo('#e0f4ff')">Celeste</button><button class="btn small light" onclick="cambiarFondo('#e8ffe8')">Verde</button></div>
+<hr>
+<b>📤 Exportar / Importar</b>
+<button class="btn light" onclick="exportarMapa()">📤 Copiar mapa</button>
+<button class="btn light" onclick="document.getElementById('importFile').click()">📥 Importar mapa</button>
+<input type="file" id="importFile" accept=".json" style="display:none" onchange="importarMapa(event)">
+<p style="font-size:12px">Todo se guarda en esta compu. Si cerrás y volvés a abrir, sigue todo. Y con el Service Worker anda sin wifi.</p>
+<p id="offlineEstado" style="font-size:12px"></p>
+<button class="btn light" onclick="toggleMenu()">✕ Cerrar menú</button>
+</div>
+<div id="zoomLabel">100%</div>
+<div id="viewport"><div id="canvas"><svg id="conex"></svg></div></div>
+<div id="hint">💡 <b>Atajos de compu:</b><br><kbd>T</kbd> Texto • <kbd>I</kbd> Imagen • <kbd>L</kbd> Unir<br><kbd>Supr</kbd> Borrar • <kbd>Ctrl</kbd>+<kbd>S</kbd> Guardar<br><kbd>Ctrl</kbd>+<kbd>C</kbd> / <kbd>Ctrl</kbd>+<kbd>V</kbd> Copiar / Pegar cajita<br><kbd>Ctrl</kbd>+<kbd>V</kbd> con imagen copiada = Pegar imagen<br>Arrastrá una foto desde tu carpeta y soltala<br>Rueda del mouse = Zoom • Arrastrá el fondo para moverte</div>
+<div id="toolbar">
+<button class="primary" onclick="agregarNodoTexto()">+ Texto (T)</button>
+<button onclick="document.getElementById('imgInput').click()">🖼️ + Imagen (I)</button>
+<input type="file" id="imgInput" accept="image/*" style="display:none" onchange="agregarImagen(event)">
+<button onclick="unirSeleccionados()">🔗 Unir (L)</button>
+<button onclick="borrarSeleccionado()">🗑️ Borrar (Supr)</button>
+<button onclick="zoom(1.2)">➕ Zoom</button>
+<button onclick="zoom(0.8)">➖ Zoom</button>
+<button onclick="limpiarMapa()">🧹 Limpiar</button>
+</div>
+<div id="minBar"></div>
+<script>
+if('serviceWorker' in navigator){ navigator.serviceWorker.register('./sw.js').then(()=>{ document.getElementById('offlineEstado').innerText='✅ Offline activado: ya podés abrirla sin wifi en esta compu'; }).catch(()=>{ document.getElementById('offlineEstado').innerText='Offline con localStorage (igual guarda todo)'; }); }
+function actualizarOfflineTag(){ let t=document.getElementById('offlineTag'); if(!navigator.onLine) t.style.display='block'; else t.style.display='none'; } window.addEventListener('online',actualizarOfflineTag); window.addEventListener('offline',actualizarOfflineTag); actualizarOfflineTag();
+let mapas=JSON.parse(localStorage.getItem('mapas_pizarron')||'[]');
+if(!mapas.length){ mapas=[{id:Date.now(), nombre:'Mi primer mapa - Montaje', fondo:'#fff6f0', nodos:[{id:1,x:100,y:100,texto:'Montaje',color:'#a8e0ff',img:''},{id:2,x:400,y:200,texto:'Raccord - que no se note el corte',color:'#fff0a8',img:''}], conexiones:[{a:1,b:2}]}]; localStorage.setItem('mapas_pizarron',JSON.stringify(mapas)); }
+let mapaActualId=parseInt(localStorage.getItem('mapa_actual')||mapas[0].id);
+let minimizados=JSON.parse(localStorage.getItem('mapas_min')||'[]');
+let scale=1, tx=0, ty=0, nodoSelId=null, nodoSel2Id=null, conexionSel=null;
+let viewport=document.getElementById('viewport'), canvas=document.getElementById('canvas'), conexSvg=document.getElementById('conex');
+function getMapa(){ return mapas.find(m=>m.id===mapaActualId)||mapas[0]; }
+function guardar(){ localStorage.setItem('mapas_pizarron',JSON.stringify(mapas)); localStorage.setItem('mapa_actual',mapaActualId); localStorage.setItem('mapas_min',JSON.stringify(minimizados)); document.getElementById('tituloMapa').innerText='🗺️ Mi Pizarrón - '+getMapa().nombre+' • Guardado ✅'; setTimeout(()=>{ document.getElementById('tituloMapa').innerText='🗺️ Mi Pizarrón - '+getMapa().nombre; },1500); }
+function toggleMenu(){ let m=document.getElementById('menuDrop'); m.style.display=m.style.display==='block'?'none':'block'; renderMapasSel(); }
+function crearMapa(){ let n=document.getElementById('nuevoMapaNombre').value.trim(); if(!n) return alert('Poné un nombre'); let m={id:Date.now(), nombre:n, fondo:'#fff6f0', nodos:[], conexiones:[]}; mapas.unshift(m); mapaActualId=m.id; document.getElementById('nuevoMapaNombre').value=''; guardar(); render(); toggleMenu(); }
+function duplicarMapa(){ let cur=getMapa(); let c=JSON.parse(JSON.stringify(cur)); c.id=Date.now(); c.nombre=cur.nombre+' (copia)'; mapas.unshift(c); mapaActualId=c.id; guardar(); render(); }
+function borrarMapa(){ if(!confirm('¿Borrar este mapa?')) return; mapas=mapas.filter(m=>m.id!==mapaActualId); if(!mapas.length) mapas=[{id:Date.now(), nombre:'Mapa nuevo', fondo:'#fff6f0', nodos:[], conexiones:[]}]; mapaActualId=mapas[0].id; guardar(); render(); }
+function cambiarMapa(){ mapaActualId=+document.getElementById('mapaSel').value; guardar(); render(); toggleMenu(); }
+function renderMapasSel(){ let s=document.getElementById('mapaSel'); s.innerHTML=mapas.map(m=>`<option value="${m.id}" ${m.id===mapaActualId?'selected':''}>${m.nombre}</option>`).join(''); }
+function cambiarFondo(c){ getMapa().fondo=c; viewport.style.background=c; guardar(); }
+function minimizarMapaActual(){ let m=getMapa(); if(!minimizados.find(x=>x===m.id)) minimizados.push(m.id); guardar(); renderMin(); }
+function renderMin(){ let bar=document.getElementById('minBar'); bar.innerHTML=minimizados.map(id=>{ let m=mapas.find(x=>x.id===id); if(!m) return ''; return `<div class="miniChip" onclick="restaurarMapa(${id})">📌 ${m.nombre} ＋</div>`; }).join(''); }
+function restaurarMapa(id){ mapaActualId=id; minimizados=minimizados.filter(x=>x!==id); guardar(); render(); }
+function centrar(){ tx=0; ty=0; scale=1; aplicarTransform(); }
+function zoom(f){ scale=Math.max(0.3, Math.min(2.5, scale*f)); aplicarTransform(); }
+function aplicarTransform(){ canvas.style.transform=`translate(${tx}px,${ty}px) scale(${scale})`; document.getElementById('zoomLabel').innerText=Math.round(scale*100)+'%'; }
+function agregarNodoTexto(){ let mapa=getMapa(); let cx=(-tx)/scale + 300 + Math.random()*120; let cy=(-ty)/scale + 200 + Math.random()*80; let n={id:Date.now()+Math.random(), x:cx, y:cy, texto:'Tocá acá y escribí...', color:'#a8e0ff', img:''}; mapa.nodos.push(n); guardar(); render(); setTimeout(()=>{ let ta=document.querySelector(`[data-nodo-text="${n.id}"]`); if(ta) ta.focus(); },100); }
+function agregarImagen(e){ let f=e.target.files[0]; if(!f) return; let r=new FileReader(); r.onload=()=>{ let mapa=getMapa(); let cx=(-tx)/scale + 300; let cy=(-ty)/scale + 200; mapa.nodos.push({id:Date.now()+Math.random(), x:cx, y:cy, texto:'', color:'#fff0a8', img:r.result}); guardar(); render(); }; r.readAsDataURL(f); e.target.value=''; }
+function unirSeleccionados(){ if(!nodoSelId || !nodoSel2Id || nodoSelId===nodoSel2Id) return alert('Click en una cajita, después en otra, y después Unir.'); let mapa=getMapa(); if(mapa.conexiones.find(c=>(c.a===nodoSelId && c.b===nodoSel2Id)||(c.a===nodoSel2Id && c.b===nodoSelId))) return alert('Ya están unidas'); mapa.conexiones.push({a:nodoSelId,b:nodoSel2Id}); guardar(); render(); }
+function borrarSeleccionado(){ if(conexionSel!==null){ let mapa=getMapa(); mapa.conexiones.splice(conexionSel,1); conexionSel=null; guardar(); render(); return; } if(!nodoSelId) return alert('Click en una cajita para seleccionarla y después Borrar'); let mapa=getMapa(); mapa.nodos=mapa.nodos.filter(n=>n.id!==nodoSelId); mapa.conexiones=mapa.conexiones.filter(c=>c.a!==nodoSelId && c.b!==nodoSelId); nodoSelId=null; nodoSel2Id=null; guardar(); render(); }
+function limpiarMapa(){ if(!confirm('¿Borrar todo este mapa?')) return; let m=getMapa(); m.nodos=[]; m.conexiones=[]; guardar(); render(); }
+function exportarMapa(){ let txt=JSON.stringify(getMapa()); navigator.clipboard.writeText(txt).then(()=>alert('Mapa copiado.')); }
+function descargarMapaComoArchivo(){ let blob=new Blob([JSON.stringify(getMapa(),null,2)],{type:'application/json'}); let a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=getMapa().nombre.replace(/[^a-z0-9]/gi,'_')+'.json'; a.click(); }
+function importarMapa(e){ let f=e.target.files[0]; if(!f) return; let r=new FileReader(); r.onload=()=>{ try{ let m=JSON.parse(r.result); m.id=Date.now(); m.nombre=m.nombre+' (importado)'; mapas.unshift(m); mapaActualId=m.id; guardar(); render(); alert('Mapa importado ✅'); }catch(err){ alert('Archivo no válido'); } }; r.readAsText(f); }
+function render(){ let mapa=getMapa(); document.getElementById('tituloMapa').innerText='🗺️ Mi Pizarrón - '+mapa.nombre; viewport.style.background=mapa.fondo; document.querySelectorAll('.nodo').forEach(n=>n.remove()); conexSvg.innerHTML=''; mapa.conexiones.forEach((c,idx)=>{ let a=mapa.nodos.find(n=>n.id===c.a); let b=mapa.nodos.find(n=>n.id===c.b); if(!a||!b) return; let line=document.createElementNS('http://www.w3.org/2000/svg','line'); line.setAttribute('x1',a.x+110); line.setAttribute('y1',a.y+60); line.setAttribute('x2',b.x+110); line.setAttribute('y2',b.y+60); line.setAttribute('class','line'+(conexionSel===idx?' sel':'')); line.style.pointerEvents='stroke'; line.style.cursor='pointer'; line.onclick=(e)=>{ e.stopPropagation(); conexionSel=idx; render(); }; conexSvg.appendChild(line); }); mapa.nodos.forEach(n=>{ let d=document.createElement('div'); d.className='nodo'+(n.id===nodoSelId?' sel':''); if(n.id===nodoSel2Id) d.style.border='3px solid #e8b800'; d.style.left=n.x+'px'; d.style.top=n.y+'px'; d.style.background=n.color||'white'; d.innerHTML=`<div class="head"><b>${n.img?'🖼️ Imagen':'📝 Texto'}</b><button onclick="event.stopPropagation();cambiarColorNodo(${n.id})">🎨</button><button onclick="event.stopPropagation();borrarNodo(${n.id})">✕</button></div><textarea data-nodo-text="${n.id}" oninput="cambiarTextoNodo(${n.id},this.value)" onmousedown="event.stopPropagation()">${n.texto||''}</textarea>${n.img?`<img src="${n.img}">`:''}<div class="colorRow"><span style="background:#a8e0ff" onclick="event.stopPropagation();setColorNodo(${n.id},'#a8e0ff')"></span><span style="background:#fff0a8" onclick="event.stopPropagation();setColorNodo(${n.id},'#fff0a8')"></span><span style="background:#0A2540" onclick="event.stopPropagation();setColorNodo(${n.id},'#0A2540')"></span><span style="background:#e2c6ff" onclick="event.stopPropagation();setColorNodo(${n.id},'#e2c6ff')"></span><span style="background:#b8f1cc" onclick="event.stopPropagation();setColorNodo(${n.id},'#b8f1cc')"></span></div><small style="font-size:11px;opacity:.6">Click para seleccionar • Arrastrá para mover</small>`; d.onmousedown=(e)=>{ if(e.target.tagName==='TEXTAREA'||e.target.tagName==='BUTTON'||e.target.tagName==='SPAN') return; seleccionarNodo(n.id); empezarArrastre(e,n,d); }; canvas.appendChild(d); }); aplicarTransform(); renderMapasSel(); renderMin(); }
+function seleccionarNodo(id){ if(nodoSelId && nodoSelId!==id && !nodoSel2Id){ nodoSel2Id=id; } else if(nodoSelId===id){ nodoSel2Id=null; } else { nodoSelId=id; nodoSel2Id=null; } render(); }
+function cambiarTextoNodo(id,v){ let n=getMapa().nodos.find(x=>x.id===id); if(n){ n.texto=v; guardar(); } }
+function setColorNodo(id,c){ let n=getMapa().nodos.find(x=>x.id===id); if(n){ n.color=c; guardar(); render(); } }
+function cambiarColorNodo(id){ let colores=['#a8e0ff','#fff0a8','#0A2540','#e2c6ff','#b8f1cc','#ffb8b8']; let n=getMapa().nodos.find(x=>x.id===id); let idx=colores.indexOf(n.color); n.color=colores[(idx+1)%colores.length]; guardar(); render(); }
+function borrarNodo(id){ let mapa=getMapa(); mapa.nodos=mapa.nodos.filter(n=>n.id!==id); mapa.conexiones=mapa.conexiones.filter(c=>c.a!==id && c.b!==id); if(nodoSelId===id) nodoSelId=null; if(nodoSel2Id===id) nodoSel2Id=null; guardar(); render(); }
+function empezarArrastre(e,n,d){ let sx=e.clientX, sy=e.clientY, ox=n.x, oy=n.y; let mover=(ev)=>{ n.x=ox+(ev.clientX-sx)/scale; n.y=oy+(ev.clientY-sy)/scale; d.style.left=n.x+'px'; d.style.top=n.y+'px'; }; let up=()=>{ guardar(); document.removeEventListener('mousemove',mover); document.removeEventListener('mouseup',up); render(); }; document.addEventListener('mousemove',mover); document.addEventListener('mouseup',up); }
+let panning=false, panSx=0, panSy=0, panTx=0, panTy=0, spaceDown=false;
+viewport.addEventListener('mousedown',e=>{ if(e.target!==viewport && e.target!==canvas && !spaceDown) return; panning=true; viewport.classList.add('grabbing'); panSx=e.clientX; panSy=e.clientY; panTx=tx; panTy=ty; });
+window.addEventListener('mousemove',e=>{ if(!panning) return; tx=panTx+(e.clientX-panSx); ty=panTy+(e.clientY-panSy); aplicarTransform(); });
+window.addEventListener('mouseup',()=>{ panning=false; viewport.classList.remove('grabbing'); });
+viewport.addEventListener('wheel',e=>{ e.preventDefault(); zoom(e.deltaY<0?1.1:0.9); },{passive:false});
+viewport.addEventListener('click',e=>{ if(e.target===viewport||e.target===canvas){ nodoSelId=null; nodoSel2Id=null; conexionSel=null; render(); } });
+document.addEventListener('keydown',e=>{ let tag=(document.activeElement&&document.activeElement.tagName)||''; let escribiendo=tag==='TEXTAREA'||tag==='INPUT'; if(e.ctrlKey && e.key.toLowerCase()==='s'){ e.preventDefault(); guardar(); return; } if(escribiendo) return; if(e.key.toLowerCase()==='t') agregarNodoTexto(); if(e.key.toLowerCase()==='i') document.getElementById('imgInput').click(); if(e.key.toLowerCase()==='l') unirSeleccionados(); if(e.key==='Delete'||e.key==='Backspace') borrarSeleccionado(); if(e.key===' ') spaceDown=true; });
+document.addEventListener('keyup',e=>{ if(e.key===' ') spaceDown=false; });
+let nodoCopiado = null;
+document.addEventListener('paste', async (e) => {
+  let items = e.clipboardData?.items || [];
+  for (let item of items) {
+    if (item.type.startsWith('image/')) {
+      e.preventDefault();
+      let blob = item.getAsFile();
+      let reader = new FileReader();
+      reader.onload = () => {
+        let mapa = getMapa();
+        let cx = (-tx) / scale + 300;
+        let cy = (-ty) / scale + 200;
+        mapa.nodos.push({ id: Date.now() + Math.random(), x: cx, y: cy, texto: '', color: '#fff0a8', img: reader.result });
+        guardar();
+        render();
+      };
+      reader.readAsDataURL(blob);
+      return;
+    }
+  }
+});
+document.addEventListener('copy', (e) => {
+  if (!nodoSelId) return;
+  let n = getMapa().nodos.find(x => x.id === nodoSelId);
+  if (!n) return;
+  let tag = (document.activeElement && document.activeElement.tagName) || '';
+  if (tag === 'TEXTAREA' || tag === 'INPUT') return;
+  e.preventDefault();
+  nodoCopiado = JSON.parse(JSON.stringify(n));
+  e.clipboardData.setData('text/plain', n.texto || 'nodo copiado');
+  document.getElementById('tituloMapa').innerText = '📋 Cajita copiada - apretá Ctrl+V para pegarla';
+  setTimeout(() => { document.getElementById('tituloMapa').innerText = '🗺️ Mi Pizarrón - ' + getMapa().nombre; }, 1500);
+});
+document.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v' && nodoCopiado) {
+    let tag = (document.activeElement && document.activeElement.tagName) || '';
+    if (tag === 'TEXTAREA' || tag === 'INPUT') return;
+    let mapa = getMapa();
+    let copia = JSON.parse(JSON.stringify(nodoCopiado));
+    copia.id = Date.now() + Math.random();
+    copia.x = nodoCopiado.x + 40;
+    copia.y = nodoCopiado.y + 40;
+    mapa.nodos.push(copia);
+    nodoCopiado = copia;
+    guardar();
+    render();
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'd' && nodoSelId) {
+    e.preventDefault();
+    let n = getMapa().nodos.find(x => x.id === nodoSelId);
+    if (!n) return;
+    let copia = JSON.parse(JSON.stringify(n));
+    copia.id = Date.now() + Math.random();
+    copia.x = n.x + 40;
+    copia.y = n.y + 40;
+    getMapa().nodos.push(copia);
+    guardar();
+    render();
+  }
+});
+viewport.addEventListener('dragover', (e) => { e.preventDefault(); viewport.style.background = '#dbeaff'; });
+viewport.addEventListener('dragleave', () => { viewport.style.background = getMapa().fondo; });
+viewport.addEventListener('drop', (e) => {
+  e.preventDefault();
+  viewport.style.background = getMapa().fondo;
+  let files = e.dataTransfer.files;
+  if (files.length > 0) {
+    let f = files[0];
+    if (f.type.startsWith('image/')) {
+      let r = new FileReader();
+      r.onload = () => {
+        let mapa = getMapa();
+        let cx = (-tx) / scale + 300;
+        let cy = (-ty) / scale + 200;
+        mapa.nodos.push({ id: Date.now() + Math.random(), x: cx, y: cy, texto: '', color: '#fff0a8', img: r.result });
+        guardar();
+        render();
+      };
+      r.readAsDataURL(f);
+    }
+    return;
+  }
+  let url = e.dataTransfer.getData('text/uri-list') || e.dataTransfer.getData('text/html');
+  if (url) {
+    let match = url.match(/src="([^"]+)"/) || url.match(/(https?:\/\/[^\s"']+\.(jpg|jpeg|png|webp|gif))/i);
+    let imgUrl = match ? match[1] : url.trim();
+    if (imgUrl.startsWith('http')) {
+      let mapa = getMapa();
+      let cx = (-tx) / scale + 300;
+      let cy = (-ty) / scale + 200;
+      mapa.nodos.push({ id: Date.now() + Math.random(), x: cx, y: cy, texto: '', color: '#fff0a8', img: imgUrl });
+      guardar();
+      render();
+    }
+  }
+});
+render();
+</script>
+</body>
+</html>
