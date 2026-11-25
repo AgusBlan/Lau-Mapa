@@ -1,0 +1,16 @@
+{
+  "name": "Mapas - Mi Pizarrón",
+  "short_name": "Mapas",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0A2540",
+  "theme_color": "#0A2540",
+  "icons": [
+    {
+      "src": "https://static.vecteezy.com/system/resources/thumbnails/037/250/706/small/mind-mapping-icon-vector.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any"
+    }
+  ]
+}
